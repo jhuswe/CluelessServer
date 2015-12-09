@@ -1,17 +1,17 @@
-package server;
+package controller;
 
 import java.io.*;
 import java.net.*;
 import objects.Hallway;
 import java.util.*;
 
-public class Server {
+public class Controller {
     private int clientCount;
     private List<PrintWriter> clients;
     private int allowedPlayers;
     
     //initialize private variables
-    public Server() {
+    public Controller() {
         clientCount = 0;
         clients = new ArrayList<PrintWriter>();
         allowedPlayers = 2; //debug value, real version will be 5
@@ -19,7 +19,7 @@ public class Server {
     
     //the starting point of the application
     public static void main(String[] args) {
-    	Server server = new Server();
+    	Controller server = new Controller();
     	
     	try {
 			server.listen();
@@ -48,7 +48,7 @@ public class Server {
             		this.clientCount++;
             	}
                 
-                ServerThread thread = new ServerThread(clientSocket, this);
+                ControllerThread thread = new ControllerThread(clientSocket, this);
                 thread.start();
                 this.logMessage("New server thread started");
         }

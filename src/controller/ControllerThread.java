@@ -1,4 +1,4 @@
-package server;
+package controller;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,13 +9,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.*;
 
-public class ServerThread extends Thread {
+public class ControllerThread extends Thread {
 
     private final Socket socket;
-    private Server server;
+    private Controller server;
     
     //initialize private variables
-    public ServerThread(Socket clientSocket, Server server) {
+    public ControllerThread(Socket clientSocket, Controller server) {
         this.socket = clientSocket;
         this.server = server;
     }
@@ -53,7 +53,7 @@ public class ServerThread extends Thread {
                 }
             }
         } catch (IOException ex) {
-            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ControllerThread.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
         	//cleanup created data
             try {
@@ -71,7 +71,7 @@ public class ServerThread extends Thread {
                     socket.close();
                 }
             } catch (IOException ex) {
-                Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(ControllerThread.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
