@@ -22,7 +22,7 @@ public class MoveChecker
 		
 		for( Location l : currentLoc.getConnectedLocations() )
 		{
-			if( l instanceof Room || (l instanceof Hallway && !((Hallway)l).isOccupied))
+			if( l instanceof Room || (l instanceof Hallway && !((Hallway)l).isOccupied()))
 				availLoc.add( l );
 		}
 		
