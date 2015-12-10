@@ -49,7 +49,7 @@ public class ControllerThread extends Thread {
                 } 
                 //return input text
                 else {
-            		server.messageAll("Echo: " + outputLine);
+            		//server.sendMsg("Echo: " + outputLine);
                 }
             }
         } catch (IOException ex) {

@@ -2,13 +2,21 @@ package controller;
 
 import java.io.*;
 import java.net.*;
-import objects.Hallway;
+import objects.*;
 import java.util.*;
 
 public class Controller {
     private int clientCount;
     private List<PrintWriter> clients;
     private int allowedPlayers;
+    private Map<Integer, Location> locationList;
+    private Map<Integer, Player> playerList;
+    private Player orderSet;
+    private Player currentPlayerPointer;
+    private Player disprovePlayerPointer;
+    private List<Card> culpritCards;
+    private boolean endGame;
+    private AvailableMoveChecker moveChecker;
     
     //initialize private variables
     public Controller() {
@@ -42,15 +50,15 @@ public class Controller {
 
         Socket clientSocket = null;
         while (this.getClientCount() < this.allowedPlayers) {
-                clientSocket = serverSocket.accept();
-                
-                synchronized(this) {
-            		this.clientCount++;
-            	}
-                
-                ControllerThread thread = new ControllerThread(clientSocket, this);
-                thread.start();
-                this.logMessage("New server thread started");
+    		clientSocket = serverSocket.accept();
+            
+            synchronized(this) {
+        		this.clientCount++;
+        	}
+            
+            ControllerThread thread = new ControllerThread(clientSocket, this);
+            thread.start();
+            this.logMessage("New server thread started");
         }
         
         serverSocket.close();
@@ -73,7 +81,7 @@ public class Controller {
 		//this.clientCount++;
     	this.clients.add(client);
     	this.logMessage("Client connected. Total Clients => " + this.getClientCount());
-    	this.messageAll("Client connected\n\rThere are " + this.getClientCount() + " clients connected\n\r");
+    	//this.sendMsg("Client connected\n\rThere are " + this.getClientCount() + " clients connected\n\r");
     }
     
     //removes a client from the list of clients then notifies clients and server
@@ -81,7 +89,7 @@ public class Controller {
     	this.clientCount--;
     	this.clients.remove(client);
     	this.logMessage("Client disconnected. Total Clients => " + this.clientCount);
-    	this.messageAll("Client disconnected\n\rThere are " + this.getClientCount() + " clients connected\n\r");
+    	//this.sendMsg("Client disconnected\n\rThere are " + this.getClientCount() + " clients connected\n\r");
     }
     
     //wrapper for printing messages to the console
@@ -90,9 +98,42 @@ public class Controller {
     }
     
     //send a message to all connected clients
-    public void messageAll(String message) {
+    public void sendMsg(Message message) {
+    	String jsonText = MessageBuilder.SerializeMsg(message);
+    	
     	for(PrintWriter out : this.clients) {
-        	out.println(message);
+        	out.println(jsonText);
         }
+    }
+    
+    //convert jsonText to Message object
+    public Message recvMsg(String jsonText) {
+    	Message message = (Message) MessageBuilder.DeserializeMsg(jsonText);
+    	
+    	return message;
+    }
+    
+    private void setCurrentPlayerPointer(Player player) {
+    	this.currentPlayerPointer = player;
+    }
+    
+    private void setDisprovePlayerPointer(Player player) {
+    	this.disprovePlayerPointer = player;
+    }
+    
+    private void setCulpritCards(List<Card> cards) {
+    	this.culpritCards = cards;
+    }
+    
+    private void getMoveCheckerResult(Player player) {
+    	
+    }
+    
+    private void updateLocationList(Location location) {
+    	locationList.put(location.getId(), location);
+    }
+    
+    private void updatePlayerList(Player player) {
+    	playerList.put(player.getId(), player);
     }
 }
