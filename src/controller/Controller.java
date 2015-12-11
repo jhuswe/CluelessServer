@@ -25,7 +25,7 @@ public class Controller {
     public Controller() {
         clientCount = 0;
         clients = new ArrayList<InOut>();
-        allowedPlayers = 1; //debug value, real version will be 5
+        allowedPlayers = 2; //debug value, real version will be 5
         culpritCards = new ArrayList<Card>();
         locationList = new HashMap<Integer, Location>();
         playerList = new HashMap<Integer, Player>();
@@ -78,7 +78,7 @@ public class Controller {
         List<Card> allCards = new ArrayList<Card>();
         List<List<Card>> hands = new ArrayList<List<Card>>();
         //build list of all starting locations
-        List<Location> startingLocations = this.getAllInitialLocations();
+        List<Location> currentLocations = this.getAllInitialLocations();
         
         this.logMessage("Created starting location information");
 
@@ -186,7 +186,7 @@ public class Controller {
         	Message message = new Message();
         	message.action = Action.INITIATE_CHARACTER;
         	message.player = player;
-        	message.playerLocations = startingLocations;
+        	message.playerLocations = currentLocations;
         	
         	//notify client of assigned player
         	this.sendMsg(message, this.clients.get(playerNum - 1).out); 
@@ -196,7 +196,48 @@ public class Controller {
         	i++;
 		}
         
+        int turnMinValue = Card.MISS_SCARLET.value(); //lowest allowed value for player turn
+        int currentPlayerNum = turnMinValue; 
+        int turnMaxValue = turnMinValue + this.allowedPlayers; //highest allowed value for player turn
         
+        while (!endGame) {
+        	//if we have reached the last player start the cyle again
+			if (currentPlayerNum > turnMaxValue) {
+				currentPlayerNum = turnMinValue;
+			}
+        	
+			//build message for current player
+        	InOut currentPlayerData = this.getClient(currentPlayerNum);
+			Message yourTurn = new Message();
+        	yourTurn.action = Action.MOVE;
+        	yourTurn.player = currentPlayerData.player;
+        	yourTurn.availableMoves = this.getMoveCheckerResult(yourTurn.player);
+        	yourTurn.playerLocations = currentLocations;
+        	
+        	//send message to all clients
+        	this.sendMsgToAll(yourTurn);
+        	
+        	//receive message from current player
+        	Message playersChoice = this.recvMsg(currentPlayerData.in);
+        	
+        	if (playersChoice.action.value() == Action.MOVE.value()) {
+				
+			}
+        	else if (playersChoice.action.value() == Action.MAKE_SUGGESTION.value()) {
+				
+			}
+        	else if (playersChoice.action.value() == Action.DISPROVE.value()) {
+				
+			}
+        	else if (playersChoice.action.value() == Action.ACCUSATION.value()) {
+				
+			}
+        	else if (playersChoice.action.value() == Action.RECEIVE_DISPROVE_CARD.value()) {
+				
+			}
+        	
+			currentPlayerNum++;
+		}
     }
     
     //returns list of clients
@@ -247,8 +288,16 @@ public class Controller {
     }
     
     //convert jsonText to Message object
-    public Message recvMsg(String jsonText) {
-    	Message message = (Message) MessageBuilder.DeserializeMsg(jsonText);
+    public Message recvMsg(BufferedReader in) {
+    	Message message = null;
+
+    	try {
+			String jsonText = in.readLine();
+			message = (Message) MessageBuilder.DeserializeMsg(jsonText);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     	
     	return message;
     }
@@ -321,5 +370,18 @@ public class Controller {
 		}
     	
     	return playerLocations;
+    }
+    
+    //get client data associated with id
+    private InOut getClient(int id) {
+    	InOut client = null;
+    	
+    	for (InOut inOut : this.clients) {
+			if (inOut.player.character.getId() == id) {
+				client = inOut;
+			}
+		}
+    	
+    	return client;
     }
 }
