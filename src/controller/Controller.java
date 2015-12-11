@@ -25,7 +25,7 @@ public class Controller {
     public Controller() {
         clientCount = 0;
         clients = new ArrayList<InOut>();
-        allowedPlayers = 1; //debug value, real version will be 5
+        allowedPlayers = 5; //debug value, real version will be 5
         culpritCards = new ArrayList<Card>();
         locationList = new HashMap<Integer, Location>();
         playerList = new HashMap<Integer, Player>();
@@ -70,7 +70,7 @@ public class Controller {
         serverSocket.close();
         
         //variables for assigning player data
-        int playerNum = this.allowedPlayers;
+        int playerNum = 1;
         List<Card> rooms = new ArrayList<Card>();
         List<Card> characters = new ArrayList<Card>();
         List<Card> weapons = new ArrayList<Card>();
@@ -108,20 +108,52 @@ public class Controller {
         allCards.addAll(characters);
         allCards.addAll(weapons);
         
-        while (!allCards.isEmpty()) {
-			int cardId = this.getRandomNumber(0, allCards.size() - 1);
-			
-			//hands.ad
+        int currentDeck = 0;
+        
+        //intialize hands
+        for (int i = 0; i < this.allowedPlayers; i++) {
+			List<Card> temp = new ArrayList<Card>();
+			hands.add(temp);
 		}
         
-        //assign characters
-        for(int i = 22; i < 28; i++) {
+        while (!allCards.isEmpty()) {
+        	//start over at first set of cards
+        	if (currentDeck > (allowedPlayers - 1)) {
+				currentDeck = 0;
+			}
+        	
+        	int cardIndex;
+        	
+        	//choose next card to put into hand
+        	if (allCards.size() > 2) {
+				cardIndex = this.getRandomNumber(0, allCards.size() - 2); //minus two since random number includes end boundary, and zero based list 
+			}
+        	else {
+        		cardIndex = 0;
+        	}
+			
+        	//pull from remaining cards
+			Card card = allCards.remove(cardIndex);
+			
+			//put cards into currentDeck
+			hands.get(currentDeck).add(card);
+			
+			currentDeck++;
+		}
+        
+        int i = 22; //starting character id
+        
+      //assign characters
+        while (playerNum < this.allowedPlayers + 1) {
         	Character character = new Character(i);
-        	Player player = new Player(character, null);
+        	List<Card> playerHand = hands.get(playerNum - 1);
+        	Player player = new Player(character, playerHand);
         	
         	this.logMessage("Player " + String.valueOf(playerNum) + " is " + Card.getCard(i).name());
         	playerNum++;
-        }
+        	i++;
+		}
+        
 //        Message temp = new Message();
 //        temp.action = Action.CHARACTER;
 //        temp.character = Card.MISS_SCARLET;
