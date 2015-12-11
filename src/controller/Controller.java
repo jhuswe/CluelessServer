@@ -77,6 +77,10 @@ public class Controller {
         List<Card> weapons = new ArrayList<Card>();
         List<Card> allCards = new ArrayList<Card>();
         List<List<Card>> hands = new ArrayList<List<Card>>();
+        //build list of all starting locations
+        List<Location> startingLocations = this.getAllInitialLocations();
+        
+        this.logMessage("Created starting location information");
 
         //build list of rooms
         for(int i = 1; i < 10; i++) {
@@ -118,7 +122,7 @@ public class Controller {
         this.logMessage("Added weapon to the solution list");
         this.logMessage("Solution list complete");
         
-        //pull all remianing cards in one list for easier assignment
+        //pull all remaining cards in one list for easier assignment
         allCards.addAll(rooms);
         allCards.addAll(characters);
         allCards.addAll(weapons);
@@ -171,6 +175,10 @@ public class Controller {
         	
         	//create player with assigned character and hand of cards
         	Player player = new Player(character, playerHand);
+
+        	//assign location to player dont need to do this??
+        	//player.location = this.getInitialLocation(player.character);
+        	
         	//assign players to clients in the order they arrived
         	this.clients.get(playerNum - 1).player = player;
         	
@@ -178,6 +186,7 @@ public class Controller {
         	Message message = new Message();
         	message.action = Action.INITIATE_CHARACTER;
         	message.player = player;
+        	message.playerLocations = startingLocations;
         	
         	//notify client of assigned player
         	this.sendMsg(message, this.clients.get(playerNum - 1).out); 
@@ -187,13 +196,7 @@ public class Controller {
         	i++;
 		}
         
-//        Message temp = new Message();
-//        temp.action = Action.CHARACTER;
-//        temp.character = Card.MISS_SCARLET;
-//        
-//        String text = MessageBuilder.SerializeMsg(temp);
-//        
-//        clients.get(0).out.println(text);
+        
     }
     
     //returns list of clients
@@ -276,5 +279,47 @@ public class Controller {
     
     private int getRandomNumber(int min, int max) {
     	return ThreadLocalRandom.current().nextInt(min, max + 1);
+    }
+    
+    private Location getInitialLocation(Character character) {
+    	Location location;
+    	Card card = Card.getCard(character.getId());
+
+    	switch (card) {
+		case MISS_SCARLET:
+			location = new Room(Card.HALL_LOUNGE.value());
+			break;
+		case COL_MUSTARD:
+			location = new Room(Card.LOUNGE_DINING.value());
+			break;
+		case MRS_WHITE:
+			location = new Room(Card.BALL_KITCHEN.value());
+			break;
+		case MR_GREEN:
+			location = new Room(Card.CONSERVATORY_BALL.value());
+			break;
+		case MRS_PEACOCK:
+			location = new Room(Card.LIBRARY_CONSERVATORY.value());
+			break;
+		case PROF_PLUM:
+			location = new Room(Card.STUDY_LIBRARY.value());
+			break;
+		default:
+			location = null;
+			break;
+		}
+    	
+    	return location;
+    }
+    
+    private List<Location> getAllInitialLocations() {
+    	List<Location> playerLocations = new ArrayList<Location>();
+    	
+    	for (int i = 22; i < 28; i++) {
+    		Character character = new Character(i);
+    		playerLocations.add(this.getInitialLocation(character));
+		}
+    	
+    	return playerLocations;
     }
 }
