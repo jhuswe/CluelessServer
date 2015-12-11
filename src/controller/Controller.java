@@ -25,7 +25,7 @@ public class Controller {
     public Controller() {
         clientCount = 0;
         clients = new ArrayList<InOut>();
-        allowedPlayers = 5; //debug value, real version will be 5
+        allowedPlayers = 1; //debug value, real version will be 5
         culpritCards = new ArrayList<Card>();
         locationList = new HashMap<Integer, Location>();
         playerList = new HashMap<Integer, Player>();
@@ -67,6 +67,7 @@ public class Controller {
             this.logMessage("New server thread started");
         }
         
+        //no more players allowed to join
         serverSocket.close();
         
         //variables for assigning player data
@@ -82,40 +83,56 @@ public class Controller {
         	rooms.add(Card.getCard(i));
         }
         
+        this.logMessage("Built list of rooms");
+        
         //pull room and put in solution list
         int answerRoom = this.getRandomNumber(0, 8);
         culpritCards.add(Card.getCard(rooms.remove(answerRoom).value()));
+        
+        this.logMessage("Added room to the solution list");
         
         //build list of characters
         for (int i = 22; i < 28; i++) {
         	characters.add(Card.getCard(i));
 		}
         
+        this.logMessage("Built list of characters");
+        
         //pull character and put in solution list
-        int answerCharacter = this.getRandomNumber(0, 6);
+        int answerCharacter = this.getRandomNumber(0, 5);
         culpritCards.add(Card.getCard(characters.remove(answerCharacter).value()));
+        
+        this.logMessage("Added character to the solution list");
         
         //build list of weapons
         for (int i = 28; i < 34; i++) {
         	weapons.add(Card.getCard(i));
 		}
+        
+        this.logMessage("Built list of weapons");
 
         //pull weapon and put in solution list
-        int answerWeapon = this.getRandomNumber(0, 6);
+        int answerWeapon = this.getRandomNumber(0, 5);
         culpritCards.add(Card.getCard(weapons.remove(answerWeapon).value()));
         
+        this.logMessage("Added weapon to the solution list");
+        this.logMessage("Solution list complete");
+        
+        //pull all remianing cards in one list for easier assignment
         allCards.addAll(rooms);
         allCards.addAll(characters);
         allCards.addAll(weapons);
         
+        //start putting cards into the first list
         int currentDeck = 0;
         
-        //intialize hands
+        //initialize hands
         for (int i = 0; i < this.allowedPlayers; i++) {
 			List<Card> temp = new ArrayList<Card>();
 			hands.add(temp);
 		}
         
+        //assign cards until none are left
         while (!allCards.isEmpty()) {
         	//start over at first set of cards
         	if (currentDeck > (allowedPlayers - 1)) {
@@ -129,7 +146,7 @@ public class Controller {
 				cardIndex = this.getRandomNumber(0, allCards.size() - 2); //minus two since random number includes end boundary, and zero based list 
 			}
         	else {
-        		cardIndex = 0;
+        		cardIndex = 0; //when cards get low offset causes an error just use zero for now
         	}
 			
         	//pull from remaining cards
@@ -141,13 +158,29 @@ public class Controller {
 			currentDeck++;
 		}
         
+        this.logMessage("Created " + this.allowedPlayers + " piles of cards");
+        
         int i = 22; //starting character id
         
       //assign characters
         while (playerNum < this.allowedPlayers + 1) {
+        	//get character associated with id
         	Character character = new Character(i);
+        	//get a pre built hand of cards for this player
         	List<Card> playerHand = hands.get(playerNum - 1);
+        	
+        	//create player with assigned character and hand of cards
         	Player player = new Player(character, playerHand);
+        	//assign players to clients in the order they arrived
+        	this.clients.get(playerNum - 1).player = player;
+        	
+        	//build message for client
+        	Message message = new Message();
+        	message.action = Action.INITIATE_CHARACTER;
+        	message.player = player;
+        	
+        	//notify client of assigned player
+        	this.sendMsg(message, this.clients.get(playerNum - 1).out); 
         	
         	this.logMessage("Player " + String.valueOf(playerNum) + " is " + Card.getCard(i).name());
         	playerNum++;
@@ -195,12 +228,19 @@ public class Controller {
     }
     
     //send a message to all connected clients
-    public void sendMsg(Message message) {
+    public void sendMsgToAll(Message message) {
     	String jsonText = MessageBuilder.SerializeMsg(message);
     	
     	for(InOut client : this.clients) {
         	client.out.println(jsonText);
         }
+    }
+    
+    //send a message to a single client
+    public void sendMsg(Message message, PrintWriter out) {
+    	String jsonText = MessageBuilder.SerializeMsg(message);
+    	
+    	out.println(jsonText);
     }
     
     //convert jsonText to Message object
