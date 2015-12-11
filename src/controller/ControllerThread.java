@@ -27,16 +27,19 @@ public class ControllerThread extends Thread {
         try {        	
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            
+            InOut thisClient = new InOut(in, out);
+            
             //this.sendMessage(out, "Welcome the echo server\n\rType \"bye\" to disconnect\n\r");
             //send welcome to server message here that indicates waiting for additional players
             
             synchronized(this) {
-            	server.addClient(out);	
+            	server.addClient(thisClient);	
             }
             
             String outputLine = null;
             while (!socket.isClosed()) {
-                outputLine = in.readLine();
+                outputLine = thisClient.in.readLine();
                 
                 //quit on empty input
                 if (outputLine == null) {
@@ -50,6 +53,7 @@ public class ControllerThread extends Thread {
                 //return input text
                 else {
             		//server.sendMsg("Echo: " + outputLine);
+                	//thisClient.out.println("Echo: " + outputLine);
                 }
             }
         } catch (IOException ex) {

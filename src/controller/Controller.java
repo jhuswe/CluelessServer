@@ -3,11 +3,14 @@ package controller;
 import java.io.*;
 import java.net.*;
 import objects.*;
+import objects.Character; //imported explicitly to prevent ambiguous type error
+import java.util.concurrent.ThreadLocalRandom;
+
 import java.util.*;
 
 public class Controller {
     private int clientCount;
-    private List<PrintWriter> clients;
+    private List<InOut> clients;
     private int allowedPlayers;
     private Map<Integer, Location> locationList;
     private Map<Integer, Player> playerList;
@@ -16,13 +19,17 @@ public class Controller {
     private Player disprovePlayerPointer;
     private List<Card> culpritCards;
     private boolean endGame;
-    private AvailableMoveChecker moveChecker;
+    private MoveChecker moveChecker;
     
     //initialize private variables
     public Controller() {
         clientCount = 0;
-        clients = new ArrayList<PrintWriter>();
-        allowedPlayers = 2; //debug value, real version will be 5
+        clients = new ArrayList<InOut>();
+        allowedPlayers = 1; //debug value, real version will be 5
+        culpritCards = new ArrayList<Card>();
+        locationList = new HashMap<Integer, Location>();
+        playerList = new HashMap<Integer, Player>();
+        moveChecker = new MoveChecker();
     }
     
     //the starting point of the application
@@ -35,7 +42,6 @@ public class Controller {
 			server.logMessage(e.toString());
 		}
     }
-    
     //listens for and processes new connections
     public void listen() throws IOException {
         ServerSocket serverSocket = null;
@@ -63,11 +69,70 @@ public class Controller {
         
         serverSocket.close();
         
-        //main game loop goes here?
+        //variables for assigning player data
+        int playerNum = this.allowedPlayers;
+        List<Card> rooms = new ArrayList<Card>();
+        List<Card> characters = new ArrayList<Card>();
+        List<Card> weapons = new ArrayList<Card>();
+        List<Card> allCards = new ArrayList<Card>();
+        List<List<Card>> hands = new ArrayList<List<Card>>();
+
+        //build list of rooms
+        for(int i = 1; i < 10; i++) {
+        	rooms.add(Card.getCard(i));
+        }
+        
+        //pull room and put in solution list
+        int answerRoom = this.getRandomNumber(0, 8);
+        culpritCards.add(Card.getCard(rooms.remove(answerRoom).value()));
+        
+        //build list of characters
+        for (int i = 22; i < 28; i++) {
+        	characters.add(Card.getCard(i));
+		}
+        
+        //pull character and put in solution list
+        int answerCharacter = this.getRandomNumber(0, 6);
+        culpritCards.add(Card.getCard(characters.remove(answerCharacter).value()));
+        
+        //build list of weapons
+        for (int i = 28; i < 34; i++) {
+        	weapons.add(Card.getCard(i));
+		}
+
+        //pull weapon and put in solution list
+        int answerWeapon = this.getRandomNumber(0, 6);
+        culpritCards.add(Card.getCard(weapons.remove(answerWeapon).value()));
+        
+        allCards.addAll(rooms);
+        allCards.addAll(characters);
+        allCards.addAll(weapons);
+        
+        while (!allCards.isEmpty()) {
+			int cardId = this.getRandomNumber(0, allCards.size() - 1);
+			
+			//hands.ad
+		}
+        
+        //assign characters
+        for(int i = 22; i < 28; i++) {
+        	Character character = new Character(i);
+        	Player player = new Player(character, null);
+        	
+        	this.logMessage("Player " + String.valueOf(playerNum) + " is " + Card.getCard(i).name());
+        	playerNum++;
+        }
+//        Message temp = new Message();
+//        temp.action = Action.CHARACTER;
+//        temp.character = Card.MISS_SCARLET;
+//        
+//        String text = MessageBuilder.SerializeMsg(temp);
+//        
+//        clients.get(0).out.println(text);
     }
     
     //returns list of clients
-    public List<PrintWriter> getClients() {
+    public List<InOut> getClients() {
     	return this.clients;
     }
     
@@ -77,7 +142,7 @@ public class Controller {
     }
     
     //add a client to the list of clients then notifies clients and server
-    public void addClient(PrintWriter client) {
+    public void addClient(InOut client) {
 		//this.clientCount++;
     	this.clients.add(client);
     	this.logMessage("Client connected. Total Clients => " + this.getClientCount());
@@ -101,8 +166,8 @@ public class Controller {
     public void sendMsg(Message message) {
     	String jsonText = MessageBuilder.SerializeMsg(message);
     	
-    	for(PrintWriter out : this.clients) {
-        	out.println(jsonText);
+    	for(InOut client : this.clients) {
+        	client.out.println(jsonText);
         }
     }
     
@@ -125,8 +190,8 @@ public class Controller {
     	this.culpritCards = cards;
     }
     
-    private void getMoveCheckerResult(Player player) {
-    	
+    private List<Location> getMoveCheckerResult(Player player) {
+    	return this.moveChecker.getAvailableMoves(player);
     }
     
     private void updateLocationList(Location location) {
@@ -135,5 +200,9 @@ public class Controller {
     
     private void updatePlayerList(Player player) {
     	playerList.put(player.getId(), player);
+    }
+    
+    private int getRandomNumber(int min, int max) {
+    	return ThreadLocalRandom.current().nextInt(min, max + 1);
     }
 }
