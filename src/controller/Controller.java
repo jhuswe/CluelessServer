@@ -16,7 +16,7 @@ public class Controller {
     private Player disprovePlayerPointer;
     private List<Card> culpritCards;
     private boolean endGame;
-    private AvailableMoveChecker moveChecker;
+    private MoveChecker moveChecker;
     
     //initialize private variables
     public Controller() {
