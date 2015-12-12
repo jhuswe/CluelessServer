@@ -361,37 +361,6 @@ public class Controller {
     	return characterLocation;
     }
     
-//    private Hallway getInitialLocation(Character character) {
-//    	Hallway location;
-//    	Card card = Card.getCard(character.getId());
-//
-//    	switch (card) {
-//		case MISS_SCARLET:
-//			location = new Hallway(Card.HALL_LOUNGE.value());
-//			break;
-//		case COL_MUSTARD:
-//			location = new Hallway(Card.LOUNGE_DINING.value());
-//			break;
-//		case MRS_WHITE:
-//			location = new Hallway(Card.BALL_KITCHEN.value());
-//			break;
-//		case MR_GREEN:
-//			location = new Hallway(Card.CONSERVATORY_BALL.value());
-//			break;
-//		case MRS_PEACOCK:
-//			location = new Hallway(Card.LIBRARY_CONSERVATORY.value());
-//			break;
-//		case PROF_PLUM:
-//			location = new Hallway(Card.STUDY_LIBRARY.value());
-//			break;
-//		default:
-//			location = null;
-//			break;
-//		}
-//    	
-//    	return location;
-//    }
-    
     private List<Location> getAllInitialLocations() {
     	List<Location> locations = new ArrayList<Location>();
     	
