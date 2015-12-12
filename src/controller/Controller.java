@@ -177,9 +177,7 @@ public class Controller {
         	Player player = new Player(character, playerHand);
 
         	//assign associated starting position to character
-        	//does this actually need to happen? this info is in the master list
-        	//why track individual player locations?
-        	//player.location = this.getInitialLocation(player.character);
+        	player.location = this.getPlayerLocation(currentLocations, player.character);
         	
         	//assign players to clients in the order they arrived
         	this.clients.get(playerNum - 1).player = player;
@@ -346,6 +344,21 @@ public class Controller {
     
     private int getRandomNumber(int min, int max) {
     	return ThreadLocalRandom.current().nextInt(min, max + 1);
+    }
+    
+    private Location getPlayerLocation(List<Location> locations, Character character) {
+    	Location characterLocation = null;
+
+    	//does not stop searching when found, optimize this
+    	for (Location location : locations) {
+			for (Character searchCharacter : location.getOccupants()) {
+				if (character.getId() == searchCharacter.getId()) {
+					characterLocation = location;
+				}
+			}
+		}
+    	
+    	return characterLocation;
     }
     
 //    private Hallway getInitialLocation(Character character) {
