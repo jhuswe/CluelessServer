@@ -20,6 +20,13 @@ public class MoveChecker
 		List<Location> availLoc = new ArrayList<Location>();
 		Location currentLoc = player.location;
 		
+		if( currentLoc == null )
+		{
+			System.out.println( "[ MoveChecker ] ERROR:: this player " 
+					+ Card.getCard( player.getId() ) + " does not have a current location" );
+			return null;
+		}
+		
 		for( Location l : currentLoc.getConnectedLocations() )
 		{
 			if( l instanceof Room || (l instanceof Hallway && !((Hallway)l).isOccupied()))
