@@ -93,7 +93,7 @@ public class Controller {
         int answerRoom = this.getRandomNumber(0, 8);
         culpritCards.add(Card.getCard(rooms.remove(answerRoom).value()));
         
-        this.logMessage("Added room to the solution list");
+        this.logMessage("Added room card to the solution list");
         
         //build list of characters
         for (int i = 22; i < 28; i++) {
@@ -177,7 +177,9 @@ public class Controller {
         	Player player = new Player(character, playerHand);
 
         	//assign associated starting position to character
-        	player.location = this.getInitialLocation(player.character);
+        	//does this actually need to happen? this info is in the master list
+        	//why track individual player locations?
+        	//player.location = this.getInitialLocation(player.character);
         	
         	//assign players to clients in the order they arrived
         	this.clients.get(playerNum - 1).player = player;
@@ -346,46 +348,143 @@ public class Controller {
     	return ThreadLocalRandom.current().nextInt(min, max + 1);
     }
     
-    private Location getInitialLocation(Character character) {
-    	Location location;
-    	Card card = Card.getCard(character.getId());
-
-    	switch (card) {
-		case MISS_SCARLET:
-			location = new Room(Card.HALL_LOUNGE.value());
-			break;
-		case COL_MUSTARD:
-			location = new Room(Card.LOUNGE_DINING.value());
-			break;
-		case MRS_WHITE:
-			location = new Room(Card.BALL_KITCHEN.value());
-			break;
-		case MR_GREEN:
-			location = new Room(Card.CONSERVATORY_BALL.value());
-			break;
-		case MRS_PEACOCK:
-			location = new Room(Card.LIBRARY_CONSERVATORY.value());
-			break;
-		case PROF_PLUM:
-			location = new Room(Card.STUDY_LIBRARY.value());
-			break;
-		default:
-			location = null;
-			break;
-		}
-    	
-    	return location;
-    }
+//    private Hallway getInitialLocation(Character character) {
+//    	Hallway location;
+//    	Card card = Card.getCard(character.getId());
+//
+//    	switch (card) {
+//		case MISS_SCARLET:
+//			location = new Hallway(Card.HALL_LOUNGE.value());
+//			break;
+//		case COL_MUSTARD:
+//			location = new Hallway(Card.LOUNGE_DINING.value());
+//			break;
+//		case MRS_WHITE:
+//			location = new Hallway(Card.BALL_KITCHEN.value());
+//			break;
+//		case MR_GREEN:
+//			location = new Hallway(Card.CONSERVATORY_BALL.value());
+//			break;
+//		case MRS_PEACOCK:
+//			location = new Hallway(Card.LIBRARY_CONSERVATORY.value());
+//			break;
+//		case PROF_PLUM:
+//			location = new Hallway(Card.STUDY_LIBRARY.value());
+//			break;
+//		default:
+//			location = null;
+//			break;
+//		}
+//    	
+//    	return location;
+//    }
     
     private List<Location> getAllInitialLocations() {
-    	List<Location> playerLocations = new ArrayList<Location>();
+    	List<Location> locations = new ArrayList<Location>();
     	
-    	for (int i = 22; i < 28; i++) {
-    		Character character = new Character(i);
-    		playerLocations.add(this.getInitialLocation(character));
-		}
+    	//create all rooms
+    	Room study = new Room(Card.STUDY.value());
+    	Room hall = new Room(Card.HALL.value());
+    	Room lounge = new Room(Card.LOUNGE.value());
+    	Room library = new Room(Card.LIBRARY.value());
+    	Room billiardRoom = new Room(Card.BILLIARD.value());
+    	Room diningRoom = new Room(Card.DINING.value());
+    	Room conservatory = new Room(Card.CONSERVATORY.value());
+    	Room ballRoom = new Room(Card.BALL.value());
+    	Room kitchen = new Room(Card.KITCHEN.value());
     	
-    	return playerLocations;
+    	//create all hallways
+    	Hallway studyToHall = new Hallway(Card.STUDY_HALL.value());
+    	Hallway hallToLounge = new Hallway(Card.HALL_LOUNGE.value());
+    	Hallway studyToLibrary = new Hallway(Card.STUDY_LIBRARY.value());
+    	Hallway hallToBilliard = new Hallway(Card.HALL_BILLIARD.value());
+    	Hallway loungeToDining = new Hallway(Card.LOUNGE_DINING.value());
+    	Hallway libraryToBilliard = new Hallway(Card.LIBRARY_BILLIARD.value());
+    	Hallway billiardToDining = new Hallway(Card.BILLIARD_DINING.value());
+    	Hallway libraryToConservatory = new Hallway(Card.LIBRARY_CONSERVATORY.value());
+    	Hallway billiardToBall = new Hallway(Card.BILLIARD_BALL.value());
+    	Hallway diningToKitchen = new Hallway(Card.DINING_KITCHEN.value());
+    	Hallway conservatoryToBall = new Hallway(Card.CONSERVATORY_BALL.value());
+    	Hallway ballToKitchen = new Hallway(Card.BALL_KITCHEN.value());
+    	
+    	//place characters in hallways
+    	hallToLounge.addOccupant( new Character( Card.MISS_SCARLET.value() ) );
+    	loungeToDining.addOccupant( new Character( Card.COL_MUSTARD.value() ) );
+    	ballToKitchen.addOccupant( new Character( Card.MRS_WHITE.value() ) );
+    	conservatoryToBall.addOccupant( new Character( Card.MR_GREEN.value() ) );
+    	libraryToConservatory.addOccupant( new Character( Card.MRS_PEACOCK.value() ) );
+    	studyToLibrary.addOccupant( new Character( Card.PROF_PLUM.value() ) );
+    	
+    	//connect study to its hallways and secret room (kitchen)
+    	this.connectRoomToHallway(study, studyToHall);
+    	this.connectRoomToHallway(study, studyToLibrary);
+    	this.connectRoomToRoom(study, kitchen);
+    	
+    	//connect hall to its hallways
+    	this.connectRoomToHallway(hall, studyToHall);
+    	this.connectRoomToHallway(hall, hallToLounge);
+    	this.connectRoomToHallway(hall, hallToBilliard);
+    	
+    	//connect lounge to its hallways and secret room (conservatory)
+    	this.connectRoomToHallway(lounge, hallToLounge);
+    	this.connectRoomToHallway(lounge, loungeToDining);
+    	this.connectRoomToRoom(lounge, conservatory);
+    	
+    	//connect library to its hallways
+    	this.connectRoomToHallway(library, studyToLibrary);
+    	this.connectRoomToHallway(library, libraryToBilliard);
+    	this.connectRoomToHallway(library, libraryToConservatory);
+    	
+    	//connect billiard room to its hallways
+    	this.connectRoomToHallway(billiardRoom, hallToBilliard);
+    	this.connectRoomToHallway(billiardRoom, libraryToBilliard);
+    	this.connectRoomToHallway(billiardRoom, billiardToDining);
+    	this.connectRoomToHallway(billiardRoom, billiardToBall);
+    	
+    	//connect dining room to its hallways
+    	this.connectRoomToHallway(diningRoom, loungeToDining);
+    	this.connectRoomToHallway(diningRoom, billiardToDining);
+    	this.connectRoomToHallway(diningRoom, diningToKitchen);
+    	
+    	//connect conservatory to its hallways (already connected to its secret room)
+    	this.connectRoomToHallway(conservatory, libraryToConservatory);
+    	this.connectRoomToHallway(conservatory, conservatoryToBall);
+    	
+    	//connect ballroom to its hallways
+    	this.connectRoomToHallway(ballRoom, conservatoryToBall);
+    	this.connectRoomToHallway(ballRoom, billiardToBall);
+    	this.connectRoomToHallway(ballRoom, ballToKitchen);
+    	
+    	//connect kitchen to its hallways (already connected to its secret room)
+    	this.connectRoomToHallway(kitchen, ballToKitchen);
+    	this.connectRoomToHallway(kitchen, diningToKitchen);
+    	
+    	//put all rooms in list
+    	locations.add(study);
+    	locations.add(hall);
+    	locations.add(lounge);
+    	locations.add(library);
+    	locations.add(billiardRoom);
+    	locations.add(diningRoom);
+    	locations.add(conservatory);
+    	locations.add(ballRoom);
+    	locations.add(kitchen);
+    	
+    	//put all hallways in list
+    	locations.add(studyToHall);
+    	locations.add(hallToLounge);
+    	locations.add(studyToLibrary);
+    	locations.add(hallToBilliard);
+    	locations.add(loungeToDining);
+    	locations.add(libraryToBilliard);
+    	locations.add(billiardToDining);
+    	locations.add(libraryToConservatory);
+    	locations.add(billiardToBall);
+    	locations.add(diningToKitchen);
+    	locations.add(conservatoryToBall);
+    	locations.add(ballToKitchen);
+    	
+    	return locations;
     }
     
     //get client data associated with id
@@ -399,5 +498,16 @@ public class Controller {
 		}
     	
     	return client;
+    }
+    
+    //connect a room and hallway to one another
+    private void connectRoomToHallway(Room room, Hallway hallway) {
+    	room.addHallway(hallway);
+    	hallway.addConnectedRoom(room);
+    }
+    
+    //connect a room and a room together
+    private void connectRoomToRoom(Room room1, Room room2) {
+    	
     }
 }
