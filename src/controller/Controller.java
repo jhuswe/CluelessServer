@@ -176,6 +176,7 @@ public class Controller {
         	//create player with assigned character and hand of cards
         	Player player = new Player(character, playerHand);
 
+        	//assign associated starting position to character
         	player.location = this.getInitialLocation(player.character);
         	
         	//assign players to clients in the order they arrived
