@@ -25,7 +25,7 @@ public class Controller {
     public Controller() {
         clientCount = 0;
         clients = new ArrayList<InOut>();
-        allowedPlayers = 2; //debug value, real version will be 5
+        allowedPlayers = 1; //debug value, real version will be 5
         culpritCards = new ArrayList<Card>();
         locationList = new HashMap<Integer, Location>();
         playerList = new HashMap<Integer, Player>();
@@ -176,8 +176,7 @@ public class Controller {
         	//create player with assigned character and hand of cards
         	Player player = new Player(character, playerHand);
 
-        	//assign location to player dont need to do this??
-        	//player.location = this.getInitialLocation(player.character);
+        	player.location = this.getInitialLocation(player.character);
         	
         	//assign players to clients in the order they arrived
         	this.clients.get(playerNum - 1).player = player;
@@ -206,6 +205,8 @@ public class Controller {
 				currentPlayerNum = turnMinValue;
 			}
         	
+			this.logMessage("Starting to build message");
+			
 			//build message for current player
         	InOut currentPlayerData = this.getClient(currentPlayerNum);
 			Message yourTurn = new Message();
@@ -213,6 +214,8 @@ public class Controller {
         	yourTurn.player = currentPlayerData.player;
         	yourTurn.availableMoves = this.getMoveCheckerResult(yourTurn.player);
         	yourTurn.playerLocations = currentLocations;
+        	
+        	this.logMessage("Finished building message");
         	
         	//send message to all clients
         	this.sendMsgToAll(yourTurn);
@@ -275,22 +278,32 @@ public class Controller {
     public void sendMsgToAll(Message message) {
     	String jsonText = MessageBuilder.SerializeMsg(message);
     	
+    	this.logMessage("Starting to message all clients");
+    	
     	for(InOut client : this.clients) {
         	client.out.println(jsonText);
         }
+    	
+    	this.logMessage("Finshed messaging all clients");
     }
     
     //send a message to a single client
     public void sendMsg(Message message, PrintWriter out) {
     	String jsonText = MessageBuilder.SerializeMsg(message);
     	
+    	this.logMessage("Starting to message a single client");
+    	
     	out.println(jsonText);
+    	
+    	this.logMessage("Finished messaging a single client");
     }
     
     //convert jsonText to Message object
     public Message recvMsg(BufferedReader in) {
     	Message message = null;
 
+    	this.logMessage("Starting to receive from client");
+    	
     	try {
 			String jsonText = in.readLine();
 			message = (Message) MessageBuilder.DeserializeMsg(jsonText);
@@ -298,6 +311,8 @@ public class Controller {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+    	
+    	this.logMessage("Finished recieving a message from the client");
     	
     	return message;
     }
