@@ -237,51 +237,28 @@ public class Controller {
 					playersChoice = this.recvMsg(currentPlayerData.in);
 					
 					if (playersChoice.action.value() == Action.MAKE_SUGGESTION.value()) {
-//						List<Integer> guess = playersChoice.SDAInfo;
-//						boolean suggestionDisproved = this.promptForDisproval(currentPlayerData, guess);
 						this.processSuggestion(playersChoice, currentPlayerData);
 					}
 					else if (playersChoice.action.value() == Action.ACCUSATION.value()) {
 						this.processAccusation(playersChoice);
-//						List<Integer> accusation = playersChoice.SDAInfo;
-//						boolean isCorrect = this.checkAccusation(accusation);
-//						
-//						if (isCorrect) {
-//							Message winMessage = new Message();
-//							
-//							winMessage.action = Action.WIN;
-//							winMessage.player = playersChoice.player;
-//							winMessage.SDAInfo = accusation;
-//							
-//							this.sendMsgToAll(winMessage);
-//							
-//							this.endGame = true;
-//						}
-//						else {
-//							Message loseMessage = new Message();
-//							
-//							loseMessage.action = Action.LOSE;
-//							playersChoice.player.isOutOfGame = true;
-//							loseMessage.player = playersChoice.player;
-//							loseMessage.SDAInfo	 = accusation;
-//
-//							this.sendMsgToAll(loseMessage);
-//						}
+					}
+					else {
+						//player chose nothing??
 					}
 				}
 			}
-//        	else if (playersChoice.action.value() == Action.DISPROVE.value()) { 
-//				
-//			}
         	else if (playersChoice.action.value() == Action.MAKE_SUGGESTION.value()) {
+        		playersChoice.action = Action.MAKE_SUGGESTION;
+        		//get client to ignore status message meant for non active players and then uncomment this code
+        		//this.sendMsgToAll(playersChoice);
 				this.processSuggestion(playersChoice, currentPlayerData);
 			}
         	else if (playersChoice.action.value() == Action.ACCUSATION.value()) {
+        		playersChoice.action = Action.ACCUSATION;
+        		//get client to ignore status message meant for non active players and then uncomment this code
+        		//this.sendMsgToAll(playersChoice);
 				this.processAccusation(playersChoice);
 			}
-//        	else if (playersChoice.action.value() == Action.RECEIVE_DISPROVE_CARD.value()) {
-//				
-//			}
         	
 			currentPlayerNum++;
 		}
