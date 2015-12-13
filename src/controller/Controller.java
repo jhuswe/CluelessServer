@@ -20,16 +20,18 @@ public class Controller {
     private List<Card> culpritCards;
     private boolean endGame;
     private MoveChecker moveChecker;
+    private List<Location> currentLocations;
     
     //initialize private variables
     public Controller() {
         clientCount = 0;
         clients = new ArrayList<InOut>();
-        allowedPlayers = 1; //debug value, real version will be 5
+        allowedPlayers = 2; //debug value, real version will be 5
         culpritCards = new ArrayList<Card>();
         locationList = new HashMap<Integer, Location>();
         playerList = new HashMap<Integer, Player>();
         moveChecker = new MoveChecker();
+        currentLocations = new ArrayList<Location>();
     }
     
     //the starting point of the application
@@ -78,7 +80,7 @@ public class Controller {
         List<Card> allCards = new ArrayList<Card>();
         List<List<Card>> hands = new ArrayList<List<Card>>();
         //build list of all starting locations
-        List<Location> currentLocations = this.getAllInitialLocations();
+        currentLocations = this.getAllInitialLocations();
         
         this.logMessage("Created starting location information");
 
@@ -177,7 +179,7 @@ public class Controller {
         	Player player = new Player(character, playerHand);
 
         	//assign associated starting position to character
-        	player.location = this.getPlayerLocation(currentLocations, player.character);
+        	player.location = this.getPlayerLocation(player.character);
         	
         	//assign players to clients in the order they arrived
         	this.clients.get(playerNum - 1).player = player;
@@ -226,12 +228,22 @@ public class Controller {
         	
         	if (playersChoice.action.value() == Action.MOVE.value()) {
         		Player player = playersChoice.player;
-				this.moveCharacter(currentLocations, player);
+				Location newLocation = this.moveCharacter(player);
+				
+				if (this.isRoom(newLocation)) {
+					yourTurn.action = Action.MAKE_SUGGESTION;
+					this.sendMsgToAll(yourTurn);
+					
+					playersChoice = this.recvMsg(currentPlayerData.in);
+					List<Integer> guess = playersChoice.SDAInfo;
+					boolean suggestionDisproved = this.promptForDisproval(currentPlayerData, guess);
+					
+				}
 			}
-        	else if (playersChoice.action.value() == Action.MAKE_SUGGESTION.value()) {
+        	else if (playersChoice.action.value() == Action.DISPROVE.value()) { 
 				
 			}
-        	else if (playersChoice.action.value() == Action.DISPROVE.value()) {
+        	else if (playersChoice.action.value() == Action.MAKE_SUGGESTION.value()) {
 				
 			}
         	else if (playersChoice.action.value() == Action.ACCUSATION.value()) {
@@ -347,11 +359,11 @@ public class Controller {
     	return ThreadLocalRandom.current().nextInt(min, max + 1);
     }
     
-    private Location getPlayerLocation(List<Location> locations, Character character) {
+    private Location getPlayerLocation(Character character) {
     	Location characterLocation = null;
 
     	//does not stop searching when found, optimize this
-    	for (Location location : locations) {
+    	for (Location location : this.currentLocations) {
 			for (Character searchCharacter : location.getOccupants()) {
 				if (character.getId() == searchCharacter.getId()) {
 					characterLocation = location;
@@ -496,11 +508,55 @@ public class Controller {
     }
     
     //move player from current location 
-    private void  moveCharacter(List<Location> locations, Player player) {
-    	Location oldLocation = this.getPlayerLocation(locations, player.character);
+    private Location  moveCharacter(Player player) {
+    	Location oldLocation = this.getPlayerLocation(player.character);
     	Location newLocation = player.location;
     	
     	oldLocation.removeOccupant(player.character);
     	newLocation.addOccupant(player.character);
+    	
+    	return newLocation;
+    }
+    
+    //returns true if location is a room, false otherwise
+    private boolean isRoom(Location location) {
+    	boolean isRoom = false;
+    	
+    	if (location.getId() >= 1 && location.getId() <= 9) {
+			isRoom = true;
+		}
+    	
+    	return isRoom;
+    }
+    
+    //prompts all players except one who made suggestion
+    private boolean promptForDisproval(InOut currentClient, List<Integer> guess) {
+    	boolean cardShown = false;
+    	
+    	Message message = new Message();
+    	message.action = Action.DISPROVE;
+    	message.SDAInfo = guess;
+    	
+    	for (InOut client : this.clients) {
+			if (client.player.getId() != currentClient.player.getId()) {
+				message.player = client.player;
+				this.sendMsgToAll(message);
+				
+				Message playersChoice = this.recvMsg(client.in);
+				
+				if (playersChoice.character != null) {
+					cardShown = true;
+					Message disprovalMessage = new Message();
+					
+					disprovalMessage.action = Action.RECEIVE_DISPROVE_CARD;
+					disprovalMessage.player = currentClient.player;
+					disprovalMessage.character = playersChoice.character;
+							
+					this.sendMsgToAll(message);
+				}
+			}
+		}
+    	
+    	return cardShown;
     }
 }
