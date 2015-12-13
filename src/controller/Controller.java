@@ -225,7 +225,8 @@ public class Controller {
         	Message playersChoice = this.recvMsg(currentPlayerData.in);
         	
         	if (playersChoice.action.value() == Action.MOVE.value()) {
-				
+        		Player player = playersChoice.player;
+				this.moveCharacter(currentLocations, player);
 			}
         	else if (playersChoice.action.value() == Action.MAKE_SUGGESTION.value()) {
 				
@@ -490,6 +491,16 @@ public class Controller {
     
     //connect a room and a room together
     private void connectRoomToRoom(Room room1, Room room2) {
+    	room1.addSecretRoom(room2);
+    	room2.addSecretRoom(room1);
+    }
+    
+    //move player from current location 
+    private void  moveCharacter(List<Location> locations, Player player) {
+    	Location oldLocation = this.getPlayerLocation(locations, player.character);
+    	Location newLocation = player.location;
     	
+    	oldLocation.removeOccupant(player.character);
+    	newLocation.addOccupant(player.character);
     }
 }
