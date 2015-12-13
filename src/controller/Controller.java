@@ -26,7 +26,7 @@ public class Controller {
     public Controller() {
         clientCount = 0;
         clients = new ArrayList<InOut>();
-        allowedPlayers = 2; //debug value, real version will be 5
+        allowedPlayers = 1; //debug value, real version will be 5
         culpritCards = new ArrayList<Card>();
         locationList = new HashMap<Integer, Location>();
         playerList = new HashMap<Integer, Player>();
@@ -381,6 +381,20 @@ public class Controller {
     	return characterLocation;
     }
     
+    //find a location by id
+    private Location getLocation(int searchId) {
+    	Location foundLocation = null;
+    	
+    	for (Location location : this.currentLocations) {
+			if (location.getId() == searchId) {
+				foundLocation = location;
+				break; //dont keep searching after found
+			}
+		}
+    	
+    	return foundLocation;
+    }
+    
     private List<Location> getAllInitialLocations() {
     	List<Location> locations = new ArrayList<Location>();
     	
@@ -517,8 +531,8 @@ public class Controller {
     //move player from current location 
     private Location  moveCharacter(Player player) {
     	Location oldLocation = this.getPlayerLocation(player.character);
-    	Location newLocation = player.location;
-    	
+    	Location newLocation = this.getLocation(player.location.getId()); 
+
     	oldLocation.removeOccupant(player.character);
     	newLocation.addOccupant(player.character);
     	
