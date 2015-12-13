@@ -235,23 +235,53 @@ public class Controller {
 					this.sendMsgToAll(yourTurn);
 					
 					playersChoice = this.recvMsg(currentPlayerData.in);
-					List<Integer> guess = playersChoice.SDAInfo;
-					boolean suggestionDisproved = this.promptForDisproval(currentPlayerData, guess);
 					
+					if (playersChoice.action.value() == Action.MAKE_SUGGESTION.value()) {
+//						List<Integer> guess = playersChoice.SDAInfo;
+//						boolean suggestionDisproved = this.promptForDisproval(currentPlayerData, guess);
+						this.processSuggestion(playersChoice, currentPlayerData);
+					}
+					else if (playersChoice.action.value() == Action.ACCUSATION.value()) {
+						this.processAccusation(playersChoice);
+//						List<Integer> accusation = playersChoice.SDAInfo;
+//						boolean isCorrect = this.checkAccusation(accusation);
+//						
+//						if (isCorrect) {
+//							Message winMessage = new Message();
+//							
+//							winMessage.action = Action.WIN;
+//							winMessage.player = playersChoice.player;
+//							winMessage.SDAInfo = accusation;
+//							
+//							this.sendMsgToAll(winMessage);
+//							
+//							this.endGame = true;
+//						}
+//						else {
+//							Message loseMessage = new Message();
+//							
+//							loseMessage.action = Action.LOSE;
+//							playersChoice.player.isOutOfGame = true;
+//							loseMessage.player = playersChoice.player;
+//							loseMessage.SDAInfo	 = accusation;
+//
+//							this.sendMsgToAll(loseMessage);
+//						}
+					}
 				}
 			}
-        	else if (playersChoice.action.value() == Action.DISPROVE.value()) { 
-				
-			}
+//        	else if (playersChoice.action.value() == Action.DISPROVE.value()) { 
+//				
+//			}
         	else if (playersChoice.action.value() == Action.MAKE_SUGGESTION.value()) {
-				
+				this.processSuggestion(playersChoice, currentPlayerData);
 			}
         	else if (playersChoice.action.value() == Action.ACCUSATION.value()) {
-				
+				this.processAccusation(playersChoice);
 			}
-        	else if (playersChoice.action.value() == Action.RECEIVE_DISPROVE_CARD.value()) {
-				
-			}
+//        	else if (playersChoice.action.value() == Action.RECEIVE_DISPROVE_CARD.value()) {
+//				
+//			}
         	
 			currentPlayerNum++;
 		}
@@ -558,5 +588,51 @@ public class Controller {
 		}
     	
     	return cardShown;
+    }
+    
+    //checks an accusation returns true if correct, false if not
+    private boolean checkAccusation(List<Integer> accusation) {
+    	boolean isCorrect = true;
+    	
+    	//when we find a card that isnt correct the accusation is wrong
+    	for (Integer cardId : accusation) {
+			if (! culpritCards.contains( Card.getCard(cardId) )) {
+				isCorrect = false;
+			}
+		}
+    	
+    	return isCorrect;
+    }
+    
+    private void processSuggestion(Message playersChoice, InOut currentPlayerData) {
+		List<Integer> guess = playersChoice.SDAInfo;
+		boolean suggestionDisproved = this.promptForDisproval(currentPlayerData, guess);
+    }
+    
+    private void processAccusation(Message playersChoice) {
+    	List<Integer> accusation = playersChoice.SDAInfo;
+		boolean isCorrect = this.checkAccusation(accusation);
+		
+		if (isCorrect) {
+			Message winMessage = new Message();
+			
+			winMessage.action = Action.WIN;
+			winMessage.player = playersChoice.player;
+			winMessage.SDAInfo = accusation;
+			
+			this.sendMsgToAll(winMessage);
+			
+			this.endGame = true;
+		}
+		else {
+			Message loseMessage = new Message();
+			
+			loseMessage.action = Action.LOSE;
+			playersChoice.player.isOutOfGame = true;
+			loseMessage.player = playersChoice.player;
+			loseMessage.SDAInfo	 = accusation;
+
+			this.sendMsgToAll(loseMessage);
+		}
     }
 }
