@@ -27,7 +27,7 @@ public class Controller {
     public Controller() {
         clientCount = 0;
         clients = new ArrayList<InOut>();
-        allowedPlayers = 1; //debug value, real version will be 5
+        allowedPlayers = 2; //debug value, real version will be 5
         culpritCards = new ArrayList<Card>();
         locationList = new HashMap<Integer, Location>();
         playerList = new HashMap<Integer, Player>();
@@ -79,12 +79,6 @@ public class Controller {
                 InOut thisClient = new InOut(in, out, socket);
                 
             	this.addClient(thisClient);	
-//                
-//                String outputLine = null;
-//                while (!socket.isClosed()) {
-//                    outputLine = thisClient.in.readLine();
-//                    
-//                }
             } catch (IOException ex) {
                 Logger.getLogger(ControllerThread.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -229,7 +223,7 @@ public class Controller {
         
         while (!endGame) {
         	//if we have reached the last player start the cyle again
-			if (currentPlayerNum > turnMaxValue) {
+			if (currentPlayerNum >= turnMaxValue) {
 				currentPlayerNum = turnMinValue;
 			}
         	
@@ -254,6 +248,8 @@ public class Controller {
         	if (playersChoice.action.value() == Action.MOVE.value()) {
         		Player player = playersChoice.player;
 				Location newLocation = this.moveCharacter(player);
+				player.location = newLocation;
+				yourTurn.player.location = newLocation;
 				
 				if (this.isRoom(newLocation)) {
 					yourTurn.action = Action.MAKE_SUGGESTION;
