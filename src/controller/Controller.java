@@ -5,7 +5,8 @@ import java.net.*;
 import objects.*;
 import objects.Character; //imported explicitly to prevent ambiguous type error
 import java.util.concurrent.ThreadLocalRandom;
-
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.*;
 
 public class Controller {
@@ -26,7 +27,7 @@ public class Controller {
     public Controller() {
         clientCount = 0;
         clients = new ArrayList<InOut>();
-        allowedPlayers = 2; //debug value, real version will be 5
+        allowedPlayers = 1; //debug value, real version will be 5
         culpritCards = new ArrayList<Card>();
         locationList = new HashMap<Integer, Location>();
         playerList = new HashMap<Integer, Player>();
@@ -50,6 +51,7 @@ public class Controller {
 
         try {
             serverSocket = new ServerSocket(8889);
+            serverSocket.setSoTimeout(0);
             this.logMessage("Listening on port: 8889");
         } catch (IOException e) {
             this.logMessage("Could not listen on port: 8889.");
@@ -59,14 +61,37 @@ public class Controller {
         Socket clientSocket = null;
         while (this.getClientCount() < this.allowedPlayers) {
     		clientSocket = serverSocket.accept();
+    		clientSocket.setSoTimeout(0);
+    		clientSocket.setKeepAlive(true);
             
             synchronized(this) {
         		this.clientCount++;
         	}
             
-            ControllerThread thread = new ControllerThread(clientSocket, this);
-            thread.start();
-            this.logMessage("New server thread started");
+            Socket socket = clientSocket;
+            socket.setKeepAlive(true);
+            BufferedReader in = null;
+            PrintWriter out = null;
+            try {        	
+                out = new PrintWriter(socket.getOutputStream(), true);
+                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                
+                InOut thisClient = new InOut(in, out, socket);
+                
+            	this.addClient(thisClient);	
+//                
+//                String outputLine = null;
+//                while (!socket.isClosed()) {
+//                    outputLine = thisClient.in.readLine();
+//                    
+//                }
+            } catch (IOException ex) {
+                Logger.getLogger(ControllerThread.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+//            ControllerThread thread = new ControllerThread(clientSocket, this);
+//            thread.start();
+//            this.logMessage("New server thread started");
         }
         
         //no more players allowed to join
@@ -216,7 +241,7 @@ public class Controller {
         	yourTurn.action = Action.MOVE;
         	yourTurn.player = currentPlayerData.player;
         	yourTurn.availableMoves = this.getMoveCheckerResult(yourTurn.player);
-        	yourTurn.playerLocations = currentLocations;
+        	yourTurn.playerLocations = this.currentLocations;
         	
         	this.logMessage("Finished building message");
         	

@@ -31,7 +31,7 @@ public class ControllerThread extends Thread {
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             
-            InOut thisClient = new InOut(in, out);
+            InOut thisClient = new InOut(in, out, this.socket);
             
             //this.sendMessage(out, "Welcome the echo server\n\rType \"bye\" to disconnect\n\r");
             //send welcome to server message here that indicates waiting for additional players
