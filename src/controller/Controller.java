@@ -598,6 +598,14 @@ public class Controller {
 							
 					this.sendMsgToAll(message);
 				}
+				else {
+					Message noDisprovalMessage = new Message();
+					
+					noDisprovalMessage.action = Action.NO_DISPROVE_MADE;
+					noDisprovalMessage.player = currentClient.player;
+					
+					this.sendMsgToAll(noDisprovalMessage);
+				}
 			}
 		}
     	
