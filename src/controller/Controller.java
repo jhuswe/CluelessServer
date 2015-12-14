@@ -320,8 +320,8 @@ public class Controller {
     public void sendMsgToAll(Message message) {
     	String jsonText = MessageBuilder.SerializeMsg(message);
     	
-    	this.logMessage("Starting to message all clients");
-    	
+    	this.logMessage("Starting to message " + message.action + " all clients");
+  
     	for(InOut client : this.clients) {
         	client.out.println(jsonText);
         }
@@ -334,6 +334,7 @@ public class Controller {
     	String jsonText = MessageBuilder.SerializeMsg(message);
     	
     	this.logMessage("Starting to message a single client");
+    	this.logMessage( message.action + " to " + Card.getCard(message.player.getId()) );
     	
     	out.println(jsonText);
     	
@@ -354,6 +355,7 @@ public class Controller {
 			e.printStackTrace();
 		}
     	
+    	this.logMessage( message.action + " from " + Card.getCard(message.player.getId()) );
     	this.logMessage("Finished recieving a message from the client");
     	
     	return message;
