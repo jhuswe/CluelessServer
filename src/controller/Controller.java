@@ -226,62 +226,66 @@ public class Controller {
 			if (currentPlayerNum >= turnMaxValue) {
 				currentPlayerNum = turnMinValue;
 			}
-        	
-			this.logMessage("Starting to build message");
-			
-			//build message for current player
+
+			//get current player
         	InOut currentPlayerData = this.getClient(currentPlayerNum);
-			Message yourTurn = new Message();
-        	yourTurn.action = Action.MOVE;
-        	yourTurn.player = currentPlayerData.player;
-        	yourTurn.availableMoves = this.getMoveCheckerResult(yourTurn.player);
-        	yourTurn.playerLocations = this.currentLocations;
         	
-        	this.logMessage("Finished building message");
-        	
-        	//send message to all clients
-        	this.sendMsgToAll(yourTurn);
-        	
-        	//receive message from current player
-        	Message playersChoice = this.recvMsg(currentPlayerData.in);
-        	
-        	if (playersChoice.action.value() == Action.MOVE.value()) {
-        		Player player = playersChoice.player;
-				Location newLocation = this.moveCharacter(player);
-				player.location = newLocation;
-				yourTurn.player.location = newLocation;
-				
-				if (this.isRoom(newLocation)) {
-					yourTurn.action = Action.MAKE_SUGGESTION;
-					this.sendMsgToAll(yourTurn);
-					
-					playersChoice = this.recvMsg(currentPlayerData.in);
-					
-					if (playersChoice.action.value() == Action.MAKE_SUGGESTION.value()) {
-						this.processSuggestion(playersChoice, currentPlayerData);
-					}
-					else if (playersChoice.action.value() == Action.ACCUSATION.value()) {
-						this.processAccusation(playersChoice);
-					}
-					else {
-						//player chose nothing??
-					}
-				}
+        	//skip players that are out of the game
+        	if (!currentPlayerData.player.isOutOfGame) {
+        		this.logMessage("Starting to build message");
+        		//build message for current player
+        		Message yourTurn = new Message();
+            	yourTurn.action = Action.MOVE;
+            	yourTurn.player = currentPlayerData.player;
+            	yourTurn.availableMoves = this.getMoveCheckerResult(yourTurn.player);
+            	yourTurn.playerLocations = this.currentLocations;
+            	
+            	this.logMessage("Finished building message");
+            	
+            	//send message to all clients
+            	this.sendMsgToAll(yourTurn);
+            	
+            	//receive message from current player
+            	Message playersChoice = this.recvMsg(currentPlayerData.in);
+            	
+            	if (playersChoice.action.value() == Action.MOVE.value()) {
+            		Player player = playersChoice.player;
+    				Location newLocation = this.moveCharacter(player);
+    				player.location = newLocation;
+    				yourTurn.player.location = newLocation;
+    				
+    				if (this.isRoom(newLocation)) {
+    					yourTurn.action = Action.MAKE_SUGGESTION;
+    					this.sendMsgToAll(yourTurn);
+    					
+    					playersChoice = this.recvMsg(currentPlayerData.in);
+    					
+    					if (playersChoice.action.value() == Action.MAKE_SUGGESTION.value()) {
+    						this.processSuggestion(playersChoice, currentPlayerData);
+    					}
+    					else if (playersChoice.action.value() == Action.ACCUSATION.value()) {
+    						this.processAccusation(playersChoice);
+    					}
+    					else {
+    						//player chose nothing??
+    					}
+    				}
+    			}
+            	else if (playersChoice.action.value() == Action.MAKE_SUGGESTION.value()) {
+            		playersChoice.action = Action.MAKE_SUGGESTION;
+            		//get client to ignore status message meant for non active players and then uncomment this code
+            		//this.sendMsgToAll(playersChoice);
+    				this.processSuggestion(playersChoice, currentPlayerData);
+    			}
+            	else if (playersChoice.action.value() == Action.ACCUSATION.value()) {
+            		playersChoice.action = Action.ACCUSATION;
+            		//get client to ignore status message meant for non active players and then uncomment this code
+            		//this.sendMsgToAll(playersChoice);
+    				this.processAccusation(playersChoice);
+    			}
 			}
-        	else if (playersChoice.action.value() == Action.MAKE_SUGGESTION.value()) {
-        		playersChoice.action = Action.MAKE_SUGGESTION;
-        		//get client to ignore status message meant for non active players and then uncomment this code
-        		//this.sendMsgToAll(playersChoice);
-				this.processSuggestion(playersChoice, currentPlayerData);
-			}
-        	else if (playersChoice.action.value() == Action.ACCUSATION.value()) {
-        		playersChoice.action = Action.ACCUSATION;
-        		//get client to ignore status message meant for non active players and then uncomment this code
-        		//this.sendMsgToAll(playersChoice);
-				this.processAccusation(playersChoice);
-			}
         	
-			currentPlayerNum++;
+        	currentPlayerNum++;
 		}
     }
     
@@ -588,21 +592,22 @@ public class Controller {
 				
 				Message playersChoice = this.recvMsg(client.in);
 				
-				if (playersChoice.character != null) {
+				if (playersChoice.player.character != null) {
 					cardShown = true;
 					Message disprovalMessage = new Message();
 					
 					disprovalMessage.action = Action.RECEIVE_DISPROVE_CARD;
 					disprovalMessage.player = currentClient.player;
+					disprovalMessage.SDAInfo = playersChoice.SDAInfo;
 					disprovalMessage.character = playersChoice.character;
 							
-					this.sendMsgToAll(message);
+					this.sendMsgToAll(disprovalMessage);
 				}
 				else {
 					Message noDisprovalMessage = new Message();
 					
 					noDisprovalMessage.action = Action.NO_DISPROVE_MADE;
-					noDisprovalMessage.player = currentClient.player;
+					noDisprovalMessage.player = client.player;
 					
 					this.sendMsgToAll(noDisprovalMessage);
 				}
@@ -650,6 +655,7 @@ public class Controller {
 			Message loseMessage = new Message();
 			
 			loseMessage.action = Action.LOSE;
+			this.getClient(playersChoice.player.getId()).player.isOutOfGame = true;
 			playersChoice.player.isOutOfGame = true;
 			loseMessage.player = playersChoice.player;
 			loseMessage.SDAInfo	 = accusation;
