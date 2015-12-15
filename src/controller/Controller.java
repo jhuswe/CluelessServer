@@ -594,7 +594,7 @@ public class Controller {
 				
 				Message playersChoice = this.recvMsg(client.in);
 				
-				if (playersChoice.player.character != null) {
+				if (playersChoice.player.character != null && playersChoice.SDAInfo.size() > 0) {
 					cardShown = true;
 					Message disprovalMessage = new Message();
 					
