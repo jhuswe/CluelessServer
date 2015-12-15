@@ -229,6 +229,7 @@ public class Controller {
 
 			//get current player
         	InOut currentPlayerData = this.getClient(currentPlayerNum);
+        	currentPlayerData.player.location = this.getPlayerLocation(currentPlayerData.player.character);
         	
         	//skip players that are out of the game
         	if (!currentPlayerData.player.isOutOfGame) {
@@ -256,6 +257,7 @@ public class Controller {
     				
     				if (this.isRoom(newLocation)) {
     					yourTurn.action = Action.MAKE_SUGGESTION;
+    					yourTurn.player.location = newLocation;
     					this.sendMsgToAll(yourTurn);
     					
     					playersChoice = this.recvMsg(currentPlayerData.in);
