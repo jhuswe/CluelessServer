@@ -277,9 +277,13 @@ public class Controller {
     					playersChoice = this.recvMsg(currentPlayerData.in);
     					
     					if (playersChoice.action.value() == Action.MAKE_SUGGESTION.value()) {
+    						int subjectId = this.getSDAInfoCharacter(playersChoice.SDAInfo);
+    						this.moveIdToRoom(subjectId, newLocation);
     						this.processSuggestion(playersChoice, currentPlayerData);
     					}
     					else if (playersChoice.action.value() == Action.ACCUSATION.value()) {
+    						int subjectId = this.getSDAInfoCharacter(playersChoice.SDAInfo);
+    						this.moveIdToRoom(subjectId, newLocation);
     						this.processAccusation(playersChoice);
     					}
     					else {
@@ -691,5 +695,48 @@ public class Controller {
 		}
     	
     	return playersLeft;
+    }
+    
+    private int getSDAInfoCharacter(List<Integer> guess) {
+    	int characterId = 0;
+    	
+    	for (Integer id : guess) {
+			if (id >= 22 && id <= 27) {
+				characterId = id;
+			}
+		}
+    	
+    	return characterId;
+    }
+    
+    private int getSDAInfoLocation(List<Integer> guess) {
+    	int locationId = 0;
+    	
+    	for (Integer id : guess) {
+			if (id >= 1 && id <= 9) {
+				locationId = id;
+			}
+		}
+    	
+    	return locationId;
+    }
+    
+    private void moveIdToRoom(int subjectId, Location newLocation) {
+    	Location oldLocation = null;
+    	Character character = null;
+    	
+    	for (int i = 0; i < this.currentLocations.size(); i++) {
+			List<Character> occupants = this.currentLocations.get(i).getOccupants();
+			
+			for (int j = 0; j < occupants.size(); j++) {
+				if (occupants.get(j).getId() == subjectId) {
+					oldLocation = this.currentLocations.get(i);
+					character = occupants.get(j);
+				}
+			}
+		}
+    	
+    	oldLocation.removeOccupant(character);
+    	newLocation.addOccupant(character);
     }
 }
