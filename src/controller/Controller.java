@@ -22,6 +22,7 @@ public class Controller {
     private boolean endGame;
     private MoveChecker moveChecker;
     private List<Location> currentLocations;
+    private boolean allPlayersLost;
     
     //initialize private variables
     public Controller() {
@@ -33,6 +34,7 @@ public class Controller {
         playerList = new HashMap<Integer, Player>();
         moveChecker = new MoveChecker();
         currentLocations = new ArrayList<Location>();
+        allPlayersLost = false;
     }
     
     //the starting point of the application
@@ -111,7 +113,8 @@ public class Controller {
         this.logMessage("Built list of rooms");
         
         //pull room and put in solution list
-        int answerRoom = this.getRandomNumber(0, 8);
+        //int answerRoom = this.getRandomNumber(0, 8);
+        int answerRoom = 1;
         culpritCards.add(Card.getCard(rooms.remove(answerRoom).value()));
         
         this.logMessage("Added room card to the solution list");
@@ -124,7 +127,8 @@ public class Controller {
         this.logMessage("Built list of characters");
         
         //pull character and put in solution list
-        int answerCharacter = this.getRandomNumber(0, 5);
+        //int answerCharacter = this.getRandomNumber(0, 5);
+        int answerCharacter = 0;
         culpritCards.add(Card.getCard(characters.remove(answerCharacter).value()));
         
         this.logMessage("Added character to the solution list");
@@ -137,7 +141,8 @@ public class Controller {
         this.logMessage("Built list of weapons");
 
         //pull weapon and put in solution list
-        int answerWeapon = this.getRandomNumber(0, 5);
+        //int answerWeapon = this.getRandomNumber(0, 5);
+        int answerWeapon = 0;
         culpritCards.add(Card.getCard(weapons.remove(answerWeapon).value()));
         
         this.logMessage("Added weapon to the solution list");
@@ -226,6 +231,15 @@ public class Controller {
 			if (currentPlayerNum >= turnMaxValue) {
 				currentPlayerNum = turnMinValue;
 			}
+			
+//			if (! this.havePlayersLeft()) {
+//				this.endGame = true;
+//				
+//				Message lastMessage = new Message();
+//				
+//				lastMessage.action = Action.EVERYONE_LOSES;
+//				this.sendMsgToAll(lastMessage);
+//			}
 
 			//get current player
         	InOut currentPlayerData = this.getClient(currentPlayerNum);
@@ -664,5 +678,18 @@ public class Controller {
 
 			this.sendMsgToAll(loseMessage);
 		}
+    }
+    
+    //check if anyone players left
+    private boolean havePlayersLeft() {
+    	boolean playersLeft = false;
+    	
+    	for (InOut client : this.clients) {
+			if (client.player.isOutOfGame == false) {
+				playersLeft = true;
+			}
+		}
+    	
+    	return playersLeft;
     }
 }
